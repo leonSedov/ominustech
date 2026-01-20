@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OMINUS TECH | Planos de Assinatura</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Space+Grotesk:wght@300;400;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg: #050505;
+            --accent: #00f2ff;
+            --text: #ffffff;
+            --glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            background: var(--bg); 
+            color: var(--text); 
+            font-family: 'Space Grotesk', sans-serif; 
+            overflow-x: hidden; 
+            scroll-behavior: smooth;
+            min-height: 100vh;
+        }
+        
+        #bg-canvas { position: fixed; top: 0; left: 0; z-index: -1; }
+
+        nav {
+            position: fixed; top: 0; width: 100%; padding: 40px 6%;
+            display: flex; justify-content: space-between; align-items: center;
+            z-index: 1000; backdrop-filter: blur(5px);
+        }
+        
+        .logo { 
+            font-family: 'Syncopate', sans-serif; 
+            font-weight: 700; 
+            font-size: 1.4rem; 
+            letter-spacing: 8px; 
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: 0.3s ease;
+        }
+
+        .logo:hover {
+            color: var(--accent);
+            text-shadow: 0 0 20px var(--accent);
+        }
+
+        .nav-back {
+            font-size: 0.7rem;
+            font-weight: 900;
+            letter-spacing: 3px;
+            cursor: pointer;
+            transition: 0.3s ease;
+        }
+
+        .nav-back:hover {
+            color: var(--accent);
+        }
+
+        /* SEÇÃO DE PLANOS */
+        .pricing-container {
+            min-height: 100vh;
+            padding: 150px 10% 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .pricing-header {
+            text-align: center;
+            margin-bottom: 100px;
+            animation: fadeInDown 0.8s ease-out 0.2s both;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .pricing-header h1 {
+            font-family: 'Syncopate', sans-serif;
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            margin-bottom: 20px;
+            color: var(--text);
+            letter-spacing: 4px;
+            background: linear-gradient(135deg, var(--text), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .pricing-header p {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.6);
+            max-width: 600px;
+            margin: 0 auto;
+            letter-spacing: 1px;
+            line-height: 1.6;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 60px;
+            max-width: 1100px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .pricing-card {
+            background: var(--glass);
+            border: 2px solid var(--border);
+            border-radius: 20px;
+            padding: 60px 50px;
+            backdrop-filter: blur(15px);
+            transition: 0.5s ease;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            min-height: 650px;
+            animation: fadeInUp 0.8s ease-out both;
+        }
+
+        .pricing-card:nth-child(1) {
+            animation-delay: 0.3s;
+        }
+
+        .pricing-card:nth-child(2) {
+            animation-delay: 0.5s;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .pricing-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 242, 255, 0.2), transparent);
+            transition: 0.5s ease;
+        }
+
+        .pricing-card:hover::before {
+            left: 100%;
+        }
+
+        .pricing-card.featured {
+            border-color: var(--accent);
+            background: rgba(0, 242, 255, 0.08);
+            transform: scale(1.08);
+            box-shadow: 0 0 40px rgba(0, 242, 255, 0.3), inset 0 0 40px rgba(0, 242, 255, 0.1);
+        }
+
+        .pricing-card.featured:hover {
+            transform: scale(1.12);
+            box-shadow: 0 0 60px rgba(0, 242, 255, 0.5), inset 0 0 60px rgba(0, 242, 255, 0.15);
+        }
+
+        .pricing-card:not(.featured):hover {
+            background: rgba(0, 242, 255, 0.05);
+            border-color: var(--accent);
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(0, 242, 255, 0.2);
+        }
+
+        .plan-badge {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, var(--accent), #0099cc);
+            color: var(--bg);
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.5);
+        }
+
+        .plan-name {
+            font-family: 'Syncopate', sans-serif;
+            font-size: 2rem;
+            color: var(--accent);
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .plan-price {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text);
+            line-height: 1;
+        }
+
+        .plan-price span {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.5);
+            display: block;
+            margin-top: 10px;
+            font-weight: 400;
+        }
+
+        .plan-description {
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 40px;
+            margin-top: 30px;
+            line-height: 1.6;
+        }
+
+        .plan-features {
+            list-style: none;
+            margin-bottom: 50px;
+            flex-grow: 1;
+        }
+
+        .plan-features li {
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(0, 242, 255, 0.2);
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            transition: 0.3s ease;
+        }
+
+        .plan-features li:hover {
+            color: var(--accent);
+            padding-left: 10px;
+        }
+
+        .plan-features li:before {
+            content: '◆';
+            color: var(--accent);
+            margin-right: 15px;
+            font-size: 0.8rem;
+        }
+
+        .plan-features li:last-child {
+            border-bottom: none;
+        }
+
+        .plan-cta {
+            display: inline-block;
+            padding: 18px 50px;
+            background: transparent;
+            border: 2px solid var(--accent);
+            color: var(--accent);
+            text-decoration: none;
+            font-family: 'Syncopate', sans-serif;
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            border-radius: 50px;
+            transition: 0.3s ease;
+            cursor: pointer;
+            text-transform: uppercase;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .plan-cta::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--accent);
+            transition: 0.3s ease;
+            z-index: -1;
+        }
+
+        .plan-cta:hover::before {
+            left: 0;
+        }
+
+        .plan-cta:hover {
+            color: var(--bg);
+            transform: scale(1.05);
+        }
+
+        .pricing-card.featured .plan-cta {
+            background: var(--accent);
+            color: var(--bg);
+            border-color: var(--accent);
+        }
+
+        .pricing-card.featured .plan-cta::before {
+            background: rgba(0, 242, 255, 0.8);
+            left: 0;
+        }
+
+        .pricing-card.featured .plan-cta:hover {
+            background: rgba(0, 242, 255, 0.9);
+        }
+
+        /* ANIMAÇÃO DE ENTRADA - PARTÍCULAS */
+        .entry-particle {
+            position: fixed;
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--accent);
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        @media (max-width: 900px) {
+            .pricing-grid { grid-template-columns: 1fr; }
+            .pricing-card.featured { transform: scale(1); }
+            .pricing-card.featured:hover { transform: scale(1) translateY(-10px); }
+            .pricing-container { padding: 150px 5% 100px; }
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<nav>
+    <div class="logo" onclick="window.history.back()">OMINUS</div>
+    <div class="nav-back" onclick="window.history.back()">← VOLTAR</div>
+</nav>
+
+<div class="pricing-container">
+    <div class="pricing-header">
+        <h1>ESCOLHA SEU PLANO</h1>
+        <p>Transforme seu negócio com inteligência autônoma de próxima geração. Escalabilidade, performance e inovação em cada camada.</p>
+    </div>
+
+    <div class="pricing-grid">
+        <!-- PLANO PRO -->
+        <div class="pricing-card">
+            <div class="plan-name">Pro</div>
+            <div class="plan-price">R$ 499<span>/mês</span></div>
+            <p class="plan-description">Ideal para empresas em crescimento que precisam de automação avançada e escalabilidade sem limites.</p>
+            <ul class="plan-features">
+                <li>Até 20 agentes autônomos</li>
+                <li>Análise avançada com IA</li>
+                <li>Suporte prioritário 24/7</li>
+                <li>Dashboard customizável</li>
+                <li>10 integrações externas</li>
+                <li>Modelos de IA personalizados</li>
+            </ul>
+            <a href="#" class="plan-cta">Começar Agora</a>
+        </div>
+
+        <!-- PLANO ENTERPRISE -->
+        <div class="pricing-card featured">
+            <div class="plan-badge">RECOMENDADO</div>
+            <div class="plan-name">Enterprise</div>
+            <div class="plan-price">R$ 1.999<span>/mês</span></div>
+            <p class="plan-description">Solução completa para grandes corporações com necessidades específicas e máxima performance garantida.</p>
+            <ul class="plan-features">
+                <li>Agentes ilimitados</li>
+                <li>Análise preditiva avançada</li>
+                <li>Suporte dedicado 24/7</li>
+                <li>API completa e webhooks</li>
+                <li>Integrações ilimitadas</li>
+                <li>Consultoria estratégica incluída</li>
+            </ul>
+            <a href="#" class="plan-cta">Solicitar Demo</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    // BACKGROUND COM THREE.JS
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('bg-canvas'), alpha: true, antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    const pointsGeometry = new THREE.BufferGeometry();
+    const particlesCount = 5000;
+    const posArray = new Float32Array(particlesCount * 3);
+    for(let i = 0; i < particlesCount * 3; i++) posArray[i] = (Math.random() - 0.5) * 12;
+    pointsGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+
+    const material = new THREE.PointsMaterial({ 
+        size: 0.015, color: 0x00f2ff, transparent: true, opacity: 0.8, 
+        blending: THREE.AdditiveBlending, depthWrite: false 
+    });
+    const particlesMesh = new THREE.Points(pointsGeometry, material);
+    scene.add(particlesMesh);
+    camera.position.z = 3;
+
+    let time = 0;
+    function animate() {
+        requestAnimationFrame(animate);
+        time += 0.002;
+        particlesMesh.rotation.y += 0.0012;
+        material.size = 0.015 + (Math.sin(time) * 0.005);
+        renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // ANIMAÇÃO DE ENTRADA COM PARTÍCULAS
+    function createEntryAnimation() {
+        const tl = gsap.timeline();
+
+        // Criar partículas que convergem para o centro
+        for (let i = 0; i < 50; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'entry-particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.top = Math.random() * 100 + '%';
+            document.body.appendChild(particle);
+
+            tl.to(particle, {
+                left: '50%',
+                top: '50%',
+                opacity: 0,
+                duration: 1.2,
+                ease: "power2.inOut"
+            }, 0);
+
+            tl.to(particle, {
+                onComplete: () => particle.remove()
+            }, 1.2);
+        }
+
+        // Animar o conteúdo
+        tl.from('.pricing-header', {
+            opacity: 0,
+            y: 50,
+            duration: 0.8,
+            ease: "power2.out"
+        }, 0.3);
+
+        tl.from('.pricing-card', {
+            opacity: 0,
+            y: 50,
+            duration: 0.8,
+            stagger: 0.2,
+            ease: "back.out"
+        }, 0.5);
+    }
+
+    // Iniciar animação ao carregar a página
+    window.addEventListener('load', () => {
+        createEntryAnimation();
+    });
+
+    // Se a página já estiver carregada (cache)
+    if (document.readyState === 'complete') {
+        createEntryAnimation();
+    }
+</script>
+
+</body>
+</html>

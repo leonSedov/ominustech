@@ -93,12 +93,102 @@
             text-align: center; 
             display: flex; 
             flex-direction: column;
-            clip-path: polygon(0 15%, 100% 0, 100% 100%, 0 100%); /* A inclinação solicitada */
-            margin-top: -10vh; /* Ajuste para não deixar espaço preto entre as seções */
+            clip-path: polygon(0 15%, 100% 0, 100% 100%, 0 100%);
+            margin-top: -10vh;
         }
         .footer-logo { font-family: 'Syncopate'; font-size: 8vw; font-weight: 900; }
-        .cta-btn { display: inline-block; margin-top: 40px; padding: 20px 50px; background: #000; color: #fff; text-decoration: none; font-family: 'Syncopate'; font-size: 0.8rem; letter-spacing: 3px; transition: 0.3s; border-radius: 50px; }
+        .cta-btn { display: inline-block; margin-top: 40px; padding: 20px 50px; background: #000; color: #fff; text-decoration: none; font-family: 'Syncopate'; font-size: 0.8rem; letter-spacing: 3px; transition: 0.3s; border-radius: 50px; cursor: pointer; border: none; }
         .cta-btn:hover { background: var(--accent); color: #000; transform: scale(1.05); }
+
+        /* ANIMAÇÃO DE TRANSIÇÃO */
+        .transition-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg);
+            z-index: 9999;
+            pointer-events: none;
+            display: none;
+        }
+
+        .transition-overlay.active {
+            display: block;
+        }
+
+        .glitch-effect {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 242, 255, 0.15),
+                rgba(0, 242, 255, 0.15) 2px,
+                transparent 2px,
+                transparent 4px
+            );
+            animation: glitch 0.3s infinite;
+        }
+
+        @keyframes glitch {
+            0% {
+                clip-path: polygon(0 0, 100% 0, 100% 20%, 0 20%);
+                transform: translateX(-5px);
+            }
+            20% {
+                clip-path: polygon(0 20%, 100% 20%, 100% 40%, 0 40%);
+                transform: translateX(5px);
+            }
+            40% {
+                clip-path: polygon(0 40%, 100% 40%, 100% 60%, 0 60%);
+                transform: translateX(-5px);
+            }
+            60% {
+                clip-path: polygon(0 60%, 100% 60%, 100% 80%, 0 80%);
+                transform: translateX(5px);
+            }
+            80% {
+                clip-path: polygon(0 80%, 100% 80%, 100% 100%, 0 100%);
+                transform: translateX(-5px);
+            }
+            100% {
+                clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+                transform: translateX(0);
+            }
+        }
+
+        .particle-burst {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: var(--accent);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--accent);
+        }
+
+        .scan-line {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            box-shadow: 0 0 20px var(--accent);
+        }
+
+        .transition-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Syncopate', sans-serif;
+            font-size: 2.5rem;
+            color: var(--accent);
+            letter-spacing: 4px;
+            opacity: 0;
+            text-transform: uppercase;
+            text-align: center;
+            z-index: 10000;
+        }
 
         @media (max-width: 900px) {
             .bento-box, .team-visual-grid { grid-template-columns: 1fr; }
@@ -110,6 +200,12 @@
 <body>
 
 <canvas id="bg-canvas"></canvas>
+
+<!-- OVERLAY DE TRANSIÇÃO -->
+<div class="transition-overlay" id="transitionOverlay">
+    <div class="glitch-effect"></div>
+    <div class="transition-text" id="transitionText">ACESSANDO PLANOS</div>
+</div>
 
 <nav>
     <div class="logo">OMINUS</div>
@@ -195,7 +291,7 @@
 <section class="contact-footer">
     <h2 class="footer-logo">BEYOND</h2>
     <p style="font-weight: 900; font-size: 1.5rem; letter-spacing: 10px;">HUMAN LIMITS</p>
-    <a href="mailto:contato@ominustech.com" class="cta-btn">INICIAR PROJETO</a>
+    <button class="cta-btn" id="startProjectBtn">INICIAR PROJETO</button>
 </section>
 
 <script>
@@ -241,6 +337,94 @@
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // ANIMAÇÃO DE TRANSIÇÃO E REDIRECIONAMENTO
+    const startProjectBtn = document.getElementById('startProjectBtn');
+    const transitionOverlay = document.getElementById('transitionOverlay');
+    const transitionText = document.getElementById('transitionText');
+    let isTransforming = false;
+
+    startProjectBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        if (isTransforming) return;
+        isTransforming = true;
+
+        // Desabilitar scroll
+        document.body.style.overflow = 'hidden';
+        
+        // Mostrar overlay de transição
+        transitionOverlay.classList.add('active');
+        
+        const tl = gsap.timeline();
+
+        // Fase 1: Efeito de distorção e glitch (0.6s)
+        tl.to(transitionOverlay, {
+            opacity: 1,
+            duration: 0.1
+        }, 0);
+
+        // Criar partículas que explodem
+        for (let i = 0; i < 40; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle-burst';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.top = Math.random() * 100 + '%';
+            transitionOverlay.appendChild(particle);
+
+            tl.to(particle, {
+                x: (Math.random() - 0.5) * 600,
+                y: (Math.random() - 0.5) * 600,
+                opacity: 0,
+                duration: 0.9,
+                ease: "power2.out"
+            }, 0.1);
+        }
+
+        // Linhas de scan descendo
+        for (let i = 0; i < 6; i++) {
+            const scanLine = document.createElement('div');
+            scanLine.className = 'scan-line';
+            scanLine.style.top = (i * 16.66) + '%';
+            transitionOverlay.appendChild(scanLine);
+
+            tl.to(scanLine, {
+                y: window.innerHeight,
+                opacity: 0,
+                duration: 1.2,
+                ease: "power1.inOut"
+            }, 0);
+        }
+
+        // Animar texto de transição
+        tl.to(transitionText, {
+            opacity: 1,
+            y: 0,
+            duration: 0.5,
+            ease: "power2.out"
+        }, 0.3);
+
+        // Manter a tela por um tempo
+        tl.to({}, {}, "+=0.6");
+
+        // Desanimar texto
+        tl.to(transitionText, {
+            opacity: 0,
+            y: -50,
+            duration: 0.4
+        });
+
+        // Fade out da camada de transição
+        tl.to(transitionOverlay, {
+            opacity: 0,
+            duration: 0.5
+        }, "-=0.2");
+
+        // Redirecionar para página de planos
+        tl.call(() => {
+            window.location.href = 'planos.html';
+        });
     });
 </script>
 
